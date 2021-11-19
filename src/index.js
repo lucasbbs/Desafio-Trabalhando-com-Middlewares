@@ -19,15 +19,12 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  const { username } = request.headers;
-  const user = users.find((user) => user.username === username);
-  if (!((user.pro === false && user.todos.length < 10) || user.pro === true))
+  const { user } = request;
+  if (!user.pro && user.todos.length > 9)
     return response.status(403).json({
       todos: user.todos.length,
       error: "Please upgrade your plan to pro"
     });
-
-  request.user = user;
   next();
 }
 
@@ -39,11 +36,7 @@ function checksTodoExists(request, response, next) {
 
   if (!user) return response.status(404).json({ error: "User not found" });
 
-  if (
-    !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
-      id
-    )
-  )
+  if (!validate(id, 4))
     return response.status(400).json({ error: "Invalid id" });
 
   const todo = user.todos.find((todo) => todo.id === id);
